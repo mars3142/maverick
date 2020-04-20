@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - maverick (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - maverick (from `.symlinks/plugins/maverick/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  maverick:
+    :path: ".symlinks/plugins/maverick/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  maverick: a31561926e779d54622a5ec32a9d17cf2db7e702
+
+PODFILE CHECKSUM: c34e2287a9ccaa606aeceab922830efb9a6ff69a
+
+COCOAPODS: 1.9.0
