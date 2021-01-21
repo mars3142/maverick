@@ -23,8 +23,6 @@ static lua_State *globalL = NULL;
 
 static const char *progname = LUA_PROGNAME;
 
-
-
 static void lstop (lua_State *L, lua_Debug *ar) {
   (void)ar;  /* unused arg. */
   lua_sethook(L, NULL, 0, 0);
@@ -39,7 +37,7 @@ static void laction (int i) {
 }
 
 
-static void print_usage (void) {
+void print_usage (void) {
   fprintf(stderr,
   "usage: %s [options] [script [args]].\n"
   "Available options are:\n"
@@ -55,14 +53,14 @@ static void print_usage (void) {
 }
 
 
-static void l_message (const char *pname, const char *msg) {
+void l_message (const char *pname, const char *msg) {
   if (pname) fprintf(stderr, "%s: ", pname);
   fprintf(stderr, "%s\n", msg);
   fflush(stderr);
 }
 
 
-static int report (lua_State *L, int status) {
+int report (lua_State *L, int status) {
   if (status && !lua_isnil(L, -1)) {
     const char *msg = lua_tostring(L, -1);
     if (msg == NULL) msg = "(error object is not a string)";
@@ -73,7 +71,7 @@ static int report (lua_State *L, int status) {
 }
 
 
-static int traceback (lua_State *L) {
+int traceback (lua_State *L) {
   if (!lua_isstring(L, 1))  /* 'message' not a string? */
     return 1;  /* keep it intact */
   lua_getfield(L, LUA_GLOBALSINDEX, "debug");
@@ -93,7 +91,7 @@ static int traceback (lua_State *L) {
 }
 
 
-static int docall (lua_State *L, int narg, int clear) {
+int docall (lua_State *L, int narg, int clear) {
   int status;
   int base = lua_gettop(L) - narg;  /* function index */
   lua_pushcfunction(L, traceback);  /* push traceback function */
@@ -108,12 +106,12 @@ static int docall (lua_State *L, int narg, int clear) {
 }
 
 
-static void print_version (void) {
+void print_version (void) {
   l_message(NULL, LUA_RELEASE "  " LUA_COPYRIGHT);
 }
 
 
-static int getargs (lua_State *L, char **argv, int n) {
+int getargs (lua_State *L, char **argv, int n) {
   int narg;
   int i;
   int argc = 0;
@@ -131,26 +129,26 @@ static int getargs (lua_State *L, char **argv, int n) {
 }
 
 
-static int dofile (lua_State *L, const char *name) {
+int dofile (lua_State *L, const char *name) {
   int status = luaL_loadfile(L, name) || docall(L, 0, 1);
   return report(L, status);
 }
 
 
-static int dostring (lua_State *L, const char *s, const char *name) {
+int dostring (lua_State *L, const char *s, const char *name) {
   int status = luaL_loadbuffer(L, s, strlen(s), name) || docall(L, 0, 1);
   return report(L, status);
 }
 
 
-static int dolibrary (lua_State *L, const char *name) {
+int dolibrary (lua_State *L, const char *name) {
   lua_getglobal(L, "require");
   lua_pushstring(L, name);
   return report(L, docall(L, 1, 1));
 }
 
 
-static const char *get_prompt (lua_State *L, int firstline) {
+const char *get_prompt (lua_State *L, int firstline) {
   const char *p;
   lua_getfield(L, LUA_GLOBALSINDEX, firstline ? "_PROMPT" : "_PROMPT2");
   p = lua_tostring(L, -1);
@@ -160,7 +158,7 @@ static const char *get_prompt (lua_State *L, int firstline) {
 }
 
 
-static int incomplete (lua_State *L, int status) {
+int incomplete (lua_State *L, int status) {
   if (status == LUA_ERRSYNTAX) {
     size_t lmsg;
     const char *msg = lua_tolstring(L, -1, &lmsg);
@@ -174,7 +172,7 @@ static int incomplete (lua_State *L, int status) {
 }
 
 
-static int pushline (lua_State *L, int firstline) {
+int pushline (lua_State *L, int firstline) {
   char buffer[LUA_MAXINPUT];
   char *b = buffer;
   size_t l;
@@ -193,7 +191,7 @@ static int pushline (lua_State *L, int firstline) {
 }
 
 
-static int loadline (lua_State *L) {
+int loadline (lua_State *L) {
   int status;
   lua_settop(L, 0);
   if (!pushline(L, 1))
@@ -213,7 +211,7 @@ static int loadline (lua_State *L) {
 }
 
 
-static void dotty (lua_State *L) {
+void dotty (lua_State *L) {
   int status;
   const char *oldprogname = progname;
   progname = NULL;
@@ -236,7 +234,7 @@ static void dotty (lua_State *L) {
 }
 
 
-static int handle_script (lua_State *L, char **argv, int n) {
+int handle_script (lua_State *L, char **argv, int n) {
   int status;
   const char *fname;
   int narg = getargs(L, argv, n);  /* collect arguments */
@@ -258,7 +256,7 @@ static int handle_script (lua_State *L, char **argv, int n) {
 #define notail(x)	{if ((x)[2] != '\0') return -1;}
 
 
-static int collectargs (char **argv, int *pi, int *pv, int *pe) {
+int collectargs (char **argv, int *pi, int *pv, int *pe) {
   int i;
   for (i = 1; argv[i] != NULL; i++) {
     if (argv[i][0] != '-')  /* not an option? */
@@ -291,7 +289,7 @@ static int collectargs (char **argv, int *pi, int *pv, int *pe) {
 }
 
 
-static int runargs (lua_State *L, char **argv, int n) {
+int runargs (lua_State *L, char **argv, int n) {
   int i;
   for (i = 1; i < n; i++) {
     if (argv[i] == NULL) continue;
@@ -320,7 +318,7 @@ static int runargs (lua_State *L, char **argv, int n) {
 }
 
 
-static int handle_luainit (lua_State *L) {
+int handle_luainit (lua_State *L) {
   const char *init = getenv(LUA_INIT);
   if (init == NULL) return 0;  /* status OK */
   else if (init[0] == '@')

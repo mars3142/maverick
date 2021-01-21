@@ -11,7 +11,7 @@ LUA for Flutter
                        DESC
   s.homepage         = 'https://github.com/mars3142/maverick'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Peter Siegmund' => 'developer@mars3142.org' }
+  s.author           = { 'Peter Siegmund' => 'developer@mars3142.dev' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
