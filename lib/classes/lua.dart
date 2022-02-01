@@ -1,30 +1,55 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:maverick/bindings/lua.ext.dart';
+import 'package:maverick/bindings/lua.g.dart';
+import 'package:maverick/bindings/native_lib.dart';
 
-import '../bindings/native_lib.dart';
-import '../bindings/types.dart';
+class Lua {
+  Lua5 lua5;
+  Pointer<lua_State> L = nullptr;
 
-typedef print_usage_func = Void Function();
-typedef PrintUsage = void Function();
-final print_usage = nativeLib
-    .lookup<NativeFunction<print_usage_func>>("print_usage")
-    .asFunction<PrintUsage>();
+  Lua() : lua5 = Lua5(nativeLib) {
+    L = lua5.luaL_newstate();
+  }
 
-typedef print_version_func = Void Function();
-typedef PrintVersion = void Function();
-final print_version = nativeLib
-    .lookup<NativeFunction<print_version_func>>("print_version")
-    .asFunction<PrintVersion>();
+  void dispose() {
+    lua5.lua_close(L);
+    L = nullptr;
+  }
 
-typedef lua_open_func = Pointer<lua_State> Function();
-typedef LuaOpen = Pointer<lua_State> Function();
-final lua_open = nativeLib
-    .lookup<NativeFunction<lua_open_func>>("luaL_newstate")
-    .asFunction<LuaOpen>();
+  List<String> eval({id: int, code: String}) {
+    Pointer<Int8> restr = nullptr;
+    if (L != nullptr) {
+      final string = "$code".toNativeUtf8().cast<Int8>();
+      final base = lua5.lua_gettop(L);
+      final res = lua5.luaL_dostring(L, string);
+      var top = lua5.lua_gettop(L);
 
-typedef l_message_func = Void Function(Pointer<Utf8>, Pointer<Utf8>);
-typedef LMessage = void Function(Pointer<Utf8>, Pointer<Utf8>);
-final l_message = nativeLib
-    .lookup<NativeFunction<l_message_func>>("l_message")
-    .asFunction<LMessage>();
+      print("base: $base, res: $res, top: $top");
+
+      if (res > 0) {
+        restr = lua5.lua_tostring(L, -1);
+        lua5.lua_pop(L, 1);
+        top = lua5.lua_gettop(L);
+      } else {
+        restr = "OK".toNativeUtf8().cast<Int8>();
+      }
+
+      if (top > 0) {
+        for (int i = 0; i < top; i++) {
+          final str = lua5.lua_tostring(L, i - top);
+          print(str);
+        }
+      }
+
+      if (top > base) {
+        lua5.lua_pop(L, top - base);
+      }
+
+      malloc.free(string);
+      if (restr != nullptr) return [restr.cast<Utf8>().toDartString()];
+    }
+    return [];
+  }
+}
